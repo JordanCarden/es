@@ -25,8 +25,19 @@ def is_compact(points, rg_threshold=10.0):
     rg = np.sqrt(np.mean(np.sum((points - com)**2, axis=1)))
     return rg < rg_threshold
 
-def find_cluster_frame(u, cutoff=35.0, rg_threshold=50.0):
+def find_cluster_frame(u, cutoff=35.0, rg_threshold=50.0, min_frames=100):
+    """Return the first frame with a single compact cluster.
+
+    If the trajectory has fewer than ``min_frames`` frames, ``None`` is
+    returned so the polymer can be analyzed later once the simulation
+    finishes. When a cluster never forms, ``np.nan`` is returned.
+    """
+
     n_frames = len(u.trajectory)
+
+    if n_frames < min_frames:
+        return None
+
     def has_single_compact_cluster(frame):
         u.trajectory[frame]
         atoms = u.select_atoms("resname LIG")
@@ -34,8 +45,9 @@ def find_cluster_frame(u, cutoff=35.0, rg_threshold=50.0):
             return False
         centers = [res.atoms.center_of_mass() for res in atoms.residues]
         clusters = cluster_points(centers, cutoff)
-        return (len(clusters) == 1) and is_compact(centers, rg_threshold)
-    if not has_single_compact_cluster(n_frames - 100):
+        return len(clusters) == 1 and is_compact(centers, rg_threshold)
+
+    if not has_single_compact_cluster(n_frames - min_frames):
         return np.nan
     candidate = np.nan
     low, high = 0, n_frames - 100
@@ -168,6 +180,10 @@ def process_polymer(polymer_dir, analysis_tcl_path, total_columns):
         return row
 
     cluster_frame = find_cluster_frame(u)
+
+    if cluster_frame is None:
+        return None
+
     if np.isnan(cluster_frame):
         row = [polymer_name, str(input_list), "NaN", "NaN"]
         row.extend(["NaN"] * (total_columns - 4))
