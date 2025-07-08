@@ -1,13 +1,11 @@
 #!/bin/bash
+# shellcheck source=./config.sh
 
 source "$(dirname "$0")/config.sh"
 
 check_gpu() {
     local job_count
-    job_count=$(
-        ssh "${USER}@mike.hpc.lsu.edu" \
-            'squeue -u '"${USER}"' -h | grep gpu | wc -l'
-    )
+    job_count=$(ssh "${USER}@mike.hpc.lsu.edu" 'squeue -u '"${USER}"' -h | grep gpu | wc -l')
     if [ "$job_count" -lt 4 ]; then
         return 0
     else
@@ -17,10 +15,7 @@ check_gpu() {
 
 check_gpu4() {
     local job_count
-    job_count=$(
-        ssh "${USER}@qbd.loni.org" \
-            'squeue -u '"${USER}"' -h | grep gpu4 | wc -l'
-    )
+    job_count=$(ssh "${USER}@qbd.loni.org" 'squeue -u '"${USER}"' -h | grep gpu4 | wc -l')
     if [ "$job_count" -lt 4 ]; then
         return 0
     else
@@ -30,10 +25,7 @@ check_gpu4() {
 
 check_gpu2() {
     local job_count
-    job_count=$(
-        ssh "${USER}@qbd.loni.org" \
-            'squeue -u '"${USER}"' -h | grep gpu2 | wc -l'
-    )
+    job_count=$(ssh "${USER}@qbd.loni.org" 'squeue -u '"${USER}"' -h | grep gpu2 | wc -l')
     if [ "$job_count" -lt 4 ]; then
         return 0
     else
@@ -65,4 +57,4 @@ main() {
     esac
 }
 
-main
+main "$@"

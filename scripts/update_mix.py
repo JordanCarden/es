@@ -1,4 +1,3 @@
-import os
 import re
 
 pdb_file = "output.pdb"
@@ -29,7 +28,9 @@ try:
         previous_line = ""
         for line in lines:
 
-            if previous_line.strip() == "end atoms" and re.match(r"^\s*atoms\s+\d+", line):
+            if previous_line.strip() == "end atoms" and re.match(
+                r"^\s*atoms\s+\d+", line
+            ):
                 file.write(f"atoms {max_atom}\n")
             else:
                 file.write(line)
@@ -60,4 +61,3 @@ except FileNotFoundError:
 except PermissionError:
     print(f"Error: Insufficient permissions to write to {extract_script}.")
     exit(1)
-

@@ -2,8 +2,9 @@ import sys
 import ast
 import random
 
+
 def generate_random_input_list():
-    chain_types = ['E', 'S']
+    chain_types = ["E", "S"]
     sidechain_length_range = list(range(0, 10))
     backbone_length = random.randint(10, 15)
     input_list = []
@@ -13,8 +14,9 @@ def generate_random_input_list():
         input_list.append((i, f"{chain_type}{sidechain_length}"))
     return input_list
 
+
 def update_modifybond_script(file_path, new_input_list):
-    with open(file_path, 'r') as file:
+    with open(file_path, "r") as file:
         lines = file.readlines()
 
     updated_lines = []
@@ -24,10 +26,11 @@ def update_modifybond_script(file_path, new_input_list):
         else:
             updated_lines.append(line)
 
-    with open(file_path, 'w') as file:
+    with open(file_path, "w") as file:
         file.writelines(updated_lines)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     if len(sys.argv) > 1:
         try:
             input_list = ast.literal_eval(sys.argv[1])

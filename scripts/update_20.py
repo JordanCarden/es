@@ -1,8 +1,8 @@
 def update_pdb_coordinates_in_place(pdb_file, coord_file):
-    with open(coord_file, 'r') as coord:
+    with open(coord_file, "r") as coord:
         new_coords = [line.strip().split() for line in coord.readlines()]
 
-    with open(pdb_file, 'r') as pdb:
+    with open(pdb_file, "r") as pdb:
         lines = pdb.readlines()
 
     updated_lines = []
@@ -21,13 +21,12 @@ def update_pdb_coordinates_in_place(pdb_file, coord_file):
         else:
             updated_lines.append(line)
 
-    with open(pdb_file, 'w') as pdb:
+    with open(pdb_file, "w") as pdb:
         pdb.writelines(updated_lines)
 
     print(f"PDB file '{pdb_file}' has been updated with new coordinates.")
 
-update_pdb_coordinates_in_place(
-    pdb_file="20_polymers.pdb",
-    coord_file="20_coordinate.txt"
-)
 
+update_pdb_coordinates_in_place(
+    pdb_file="20_polymers.pdb", coord_file="20_coordinate.txt"
+)

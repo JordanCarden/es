@@ -1,29 +1,33 @@
 import os
-import sys
 import subprocess
-import MDAnalysis as mda
 import re
 import ast
-import numpy as np
-import time
-from scipy.spatial import ConvexHull
 import csv
+import time
+import MDAnalysis as mda
+import numpy as np
 from scipy.sparse.csgraph import connected_components
+from scipy.spatial import ConvexHull
+
 
 def cluster_points(points, cutoff):
     points = np.array(points)
     d2 = np.sum((points[:, None, :] - points[None, :, :]) ** 2, axis=-1)
-    connectivity = d2 <= cutoff ** 2
-    n_components, labels = connected_components(connectivity, directed=False, connection='strong')
+    connectivity = d2 <= cutoff**2
+    n_components, labels = connected_components(
+        connectivity, directed=False, connection="strong"
+    )
     return [np.where(labels == i)[0].tolist() for i in range(n_components)]
+
 
 def is_compact(points, rg_threshold=10.0):
     points = np.array(points)
     if len(points) < 2:
         return True
     com = np.mean(points, axis=0)
-    rg = np.sqrt(np.mean(np.sum((points - com)**2, axis=1)))
+    rg = np.sqrt(np.mean(np.sum((points - com) ** 2, axis=1)))
     return rg < rg_threshold
+
 
 def find_cluster_frame(u, cutoff=35.0, rg_threshold=50.0, min_frames=100):
     """Return the first frame with a single compact cluster.
@@ -60,6 +64,7 @@ def find_cluster_frame(u, cutoff=35.0, rg_threshold=50.0, min_frames=100):
             low = mid + 1
     return candidate
 
+
 def extract_input_list(filepath):
     with open(filepath, "r") as f:
         content = f.read()
@@ -72,6 +77,7 @@ def extract_input_list(filepath):
     except Exception:
         return None
 
+
 def compute_convex_hull_areas(xyz_file):
     with open(xyz_file, "r") as file:
         lines = file.readlines()
@@ -80,8 +86,12 @@ def compute_convex_hull_areas(xyz_file):
     areas = []
     for frame in range(1, total_frames):
         start = frame * (rows_per_frame + 2)
-        frame_data = np.array([list(map(float, line.split()[1:4]))
-                               for line in lines[start + 2:start + 2 + rows_per_frame]])
+        frame_data = np.array(
+            [
+                list(map(float, line.split()[1:4]))
+                for line in lines[start + 2:start + 2 + rows_per_frame]
+            ]
+        )
         hull = ConvexHull(frame_data[:, :2])
         areas.append(hull.volume)
     avg_area = np.mean(areas) if areas else 0
@@ -94,6 +104,7 @@ def compute_convex_hull_areas(xyz_file):
         out.write(f"{std_area}")
     return area_file
 
+
 def get_frames_values(data_path, cluster_frame):
     start_frame = 830
     end_frame = 899
@@ -104,8 +115,14 @@ def get_frames_values(data_path, cluster_frame):
         frames_line = f.readline().strip()
     return frames_line.split()
 
+
 def run_vmd(data_path, analysis_tcl_path):
-    subprocess.run(["vmd", "-dispdev", "text", "-e", analysis_tcl_path], cwd=data_path, check=True)
+    subprocess.run(
+        ["vmd", "-dispdev", "text", "-e", analysis_tcl_path],
+        cwd=data_path,
+        check=True,
+    )
+
 
 def get_area_values(data_path):
     area_file = os.path.join(data_path, "area.txt")
@@ -113,6 +130,7 @@ def get_area_values(data_path):
         with open(area_file, "r") as f:
             return [line.strip() for line in f if line.strip() != ""]
     return ["area.txt not found"]
+
 
 def get_rg_values(data_path):
     rg_file = os.path.join(data_path, "rg.txt")
@@ -128,6 +146,7 @@ def get_rg_values(data_path):
         return rg_avg, rg_std
     return (["rg.txt not found"], [])
 
+
 def get_rdf_values(data_path):
     rdf_file = os.path.join(data_path, "rdf.txt")
     rdf_vals = []
@@ -142,17 +161,24 @@ def get_rdf_values(data_path):
         return rdf_vals, coord_vals
     return (["rdf.txt not found"], [])
 
+
 def find_rdf_peak_and_coord_min(rdf_vals, coord_vals):
     rdf_peak = "NA"
     coord_at_min = "NA"
     try:
         rdf_floats = [float(x) for x in rdf_vals]
         if rdf_floats:
-            index_max = max(range(len(rdf_floats)), key=lambda i: rdf_floats[i])
+            index_max = max(
+                range(len(rdf_floats)), key=lambda i: rdf_floats[i]
+            )
             rdf_peak = rdf_floats[index_max]
             local_min_index = None
             for i in range(index_max + 1, len(rdf_floats) - 3):
-                if all(rdf_floats[i] < rdf_floats[i - offset] and rdf_floats[i] < rdf_floats[i + offset] for offset in range(1, 4)):
+                if all(
+                    rdf_floats[i] < rdf_floats[i - offset]
+                    and rdf_floats[i] < rdf_floats[i + offset]
+                    for offset in range(1, 4)
+                ):
                     local_min_index = i
                     break
             if local_min_index is not None:
@@ -164,6 +190,7 @@ def find_rdf_peak_and_coord_min(rdf_vals, coord_vals):
         coord_at_min = "NA"
     return rdf_peak, coord_at_min
 
+
 def process_polymer(polymer_dir, analysis_tcl_path, total_columns):
     polymer_name = os.path.basename(polymer_dir)
     data_path = os.path.join(polymer_dir, "20sim")
@@ -171,7 +198,7 @@ def process_polymer(polymer_dir, analysis_tcl_path, total_columns):
     input_list = extract_input_list(modbond_file)
     psf_file = os.path.join(data_path, "20_interfaceafterpgn.psf")
     dcd_file = os.path.join(data_path, "system.dcd")
-    
+
     try:
         u = mda.Universe(psf_file, dcd_file)
     except Exception:
@@ -198,7 +225,7 @@ def process_polymer(polymer_dir, analysis_tcl_path, total_columns):
     rg_avg, rg_std = get_rg_values(data_path)
     rdf_vals, coord_vals = get_rdf_values(data_path)
     rdf_peak, coord_at_min = find_rdf_peak_and_coord_min(rdf_vals, coord_vals)
-    
+
     row = [polymer_name, str(input_list)]
     row.extend(frames)
     row.extend(area_values)
@@ -208,10 +235,11 @@ def process_polymer(polymer_dir, analysis_tcl_path, total_columns):
     row.extend(coord_vals)
     row.append(rdf_peak)
     row.append(coord_at_min)
-    
+
     if len(row) < total_columns:
         row.extend(["NaN"] * (total_columns - len(row)))
     return row
+
 
 def assemble_analysis_data(polymers_dir, analysis_tcl_path, skip_polymers):
     header = []
@@ -237,7 +265,7 @@ def assemble_analysis_data(polymers_dir, analysis_tcl_path, skip_polymers):
         header.append(f"Coordination {r_val}")
     header.append("RDF Peak")
     header.append("Coordination at Minimum")
-    
+
     total_columns = len(header)
     rows = []
     for polymer in sorted(os.listdir(polymers_dir)):
@@ -245,16 +273,21 @@ def assemble_analysis_data(polymers_dir, analysis_tcl_path, skip_polymers):
             continue
         polymer_dir = os.path.join(polymers_dir, polymer)
         if os.path.isdir(polymer_dir):
-            row = process_polymer(polymer_dir, analysis_tcl_path, total_columns)
+            row = process_polymer(
+                polymer_dir, analysis_tcl_path, total_columns
+            )
             if row is not None:
                 rows.append(row)
     return header, rows
+
 
 def main():
     base_dir = os.path.dirname(__file__)
     polymers_dir = os.path.abspath(os.path.join(base_dir, "..", "polymers"))
     analysis_tcl_path = os.path.join(base_dir, "analysis.tcl")
-    analysis_csv = os.path.abspath(os.path.join(base_dir, "..", "data", "analysis.csv"))
+    analysis_csv = os.path.abspath(
+        os.path.join(base_dir, "..", "data", "analysis.csv")
+    )
     existing_polymers = set()
     if os.path.exists(analysis_csv):
         with open(analysis_csv, "r", newline="") as csvfile:
@@ -266,7 +299,9 @@ def main():
             for row in reader:
                 if row:
                     existing_polymers.add(row[0])
-    header, rows = assemble_analysis_data(polymers_dir, analysis_tcl_path, existing_polymers)
+    header, rows = assemble_analysis_data(
+        polymers_dir, analysis_tcl_path, existing_polymers
+    )
     if os.path.exists(analysis_csv):
         with open(analysis_csv, "a", newline="") as csvfile:
             writer = csv.writer(csvfile)
@@ -278,6 +313,7 @@ def main():
             writer.writerow(header)
             for row in rows:
                 writer.writerow(row)
+
 
 if __name__ == "__main__":
     start = time.time()

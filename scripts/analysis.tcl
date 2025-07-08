@@ -1,4 +1,5 @@
 #!/usr/bin/env tclsh
+
 proc getFrameRange {filename} {
     set fh [open $filename "r"]
     set line [gets $fh]
@@ -123,3 +124,4 @@ set numResidues 20
 computeRg $totalFrames $numResidues "rg.txt"
 
 exit
+

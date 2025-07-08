@@ -1,8 +1,8 @@
 mol new interfaceafterpgn.psf
-mol addfile interfaceafterpgn.pdb waitfor all  ;
+mol addfile interfaceafterpgn.pdb waitfor all
 
 set trajectory_file "system.dcd"
-mol addfile $trajectory_file type dcd waitfor all  ;
+mol addfile $trajectory_file type dcd waitfor all
 
 set num_frames [molinfo top get numframes]
 if {$num_frames == 0} {
@@ -18,13 +18,14 @@ if {![llength [$lig_atoms list]]} {
 
 $lig_atoms set chain A
 
-mol representation VDW  ;
-mol selection "resname LIG"  ;
-mol addrep top  ;
+mol representation VDW
+mol selection "resname LIG"
+mol addrep top
 
-animate goto [expr $num_frames - 1]  ;
-set last_frame [expr $num_frames - 1]
+animate goto [expr {$num_frames - 1}]
+set last_frame [expr {$num_frames - 1}]
 
-$lig_atoms writepdb single_polymer.pdb  ;
+$lig_atoms writepdb single_polymer.pdb
 
 exit
+
