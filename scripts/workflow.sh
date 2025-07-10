@@ -2,15 +2,16 @@
 set -e
 # shellcheck source=./config.sh
 
-source "$(dirname "$0")/config.sh"
+script_dir="$(dirname "$0")"
+source "${script_dir}/config.sh"
 
 main() {
     local simulations
-    simulations=$(./queue.sh | tail -n 1)
+    simulations=$("${script_dir}/queue.sh" | tail -n 1)
 
     if [ "$simulations" -gt 0 ]; then
-        ./generate.sh "$simulations"
-        ./run.sh
+        "${script_dir}/generate.sh" "$simulations"
+        "${script_dir}/run.sh"
     else
         echo "QUEUE FULL"
     fi
