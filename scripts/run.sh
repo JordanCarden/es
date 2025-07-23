@@ -6,7 +6,7 @@ source "$(dirname "$0")/config.sh"
 SCRIPT_DIR="$LOCAL_PROJECT_DIR/scripts"
 NAME_FILE="$SCRIPT_DIR/names.txt"
 SUBMIT_SCRIPT="$SCRIPT_DIR/submit.sh"
-NAMD_DIR="$HPC_PROJECT_DIR/NAMD_2.14_Linux-x86_64-multicore"
+NAMD_DIR="$HPC_PROJECT_DIR/NAMD_2.14_Linux-x86_64-multicore-CUDA"
 POLYMERS_DIR="$HPC_PROJECT_DIR/polymers"
 
 generate_script() {
