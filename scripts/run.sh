@@ -19,7 +19,7 @@ generate_script() {
             local cores=16
             local gres="gpu:4"
             local partition="gpu"
-            local account="hpc_hpc_tyw_01"
+            local account="hpc_hpcsuvo02"
             ;;
         loni)
             if [ "$simulations" -eq 4 ]; then
@@ -27,13 +27,13 @@ generate_script() {
                 local cores=16
                 local gres="gpu:4"
                 local partition="gpu4"
-                local account="loni_poly_surf"
+                local account="loni_pdrug"
             elif [ "$simulations" -eq 2 ]; then
                 local tasks=2
                 local cores=32
                 local gres="gpu:2"
                 local partition="gpu2"
-                local account="loni_poly_surf"
+                local account="loni_pdrug"
             else
                 exit 1
             fi
@@ -61,7 +61,7 @@ EOF_INNER
         cat <<EOF_INNER >>"$SUBMIT_SCRIPT"
 srun --ntasks=1 --gres=gpu:1 --cpus-per-task=$cores \
     "$NAMD_DIR/namd2" \
-    +p16 "$POLYMERS_DIR/${poly_name}/20sim/20_waterbox.conf" \
+    +p$cores "$POLYMERS_DIR/${poly_name}/20sim/20_waterbox.conf" \
     > "$POLYMERS_DIR/${poly_name}/20sim/output.log" &
 EOF_INNER
     done
