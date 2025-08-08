@@ -6,7 +6,7 @@ import random
 def generate_random_input_list():
     chain_types = ["E", "S"]
     sidechain_length_range = list(range(0, 10))
-    backbone_length = random.randint(10, 15)
+    backbone_length = random.randint(10, 20)
     input_list = []
     for i in range(1, backbone_length + 1):
         chain_type = random.choice(chain_types)
